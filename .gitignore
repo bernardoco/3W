@@ -13,3 +13,4 @@ html/
 
 # VS Code configuration
 .vscode/
+venv
