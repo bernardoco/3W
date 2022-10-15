@@ -6,11 +6,8 @@ Utility functions.
 import os
 
 import numpy as np
-from sklearn.metrics import precision_score, recall_score, f1_score
 
 import constants
-
-# TODO Define metrics functions without sklearn
 
 
 def read_files(base_path: str, classes: list, real_only=True) -> list:
@@ -29,8 +26,10 @@ def read_files(base_path: str, classes: list, real_only=True) -> list:
     files = []
 
     for c in classes:
-        for file in os.listdir(os.path.join(base_path, str(c))):
-            file_path = os.path.join(base_path, str(c), file)
+        directory = os.path.join(base_path, str(c))
+
+        for file in os.listdir(directory):
+            file_path = os.path.join(directory, file)
 
             if real_only and "WELL" not in file_path:
                 continue
@@ -53,6 +52,7 @@ def create_sequence(data: np.ndarray, steps: int = constants.STEPS) -> np.ndarra
     """
 
     x = []
+
     for i in range(0, len(data) - steps, steps):
         x.append(data[i : (i + steps)])
 
@@ -80,7 +80,7 @@ def get_features(window: np.ndarray) -> np.ndarray:
     return np.array([mean, std, var, min_value, max_value])
 
 
-def precision(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+def precision(y_true: np.ndarray, y_pred: np.ndarray, pos_label: int = 1) -> float:
     """
     Compute the Precision Score.
 
@@ -89,15 +89,22 @@ def precision(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     Args:
         y_true (np.ndarray): True labels.
         y_pred (np.ndarray): Predicted labels.
+        pos_label (int): Label of positive class.
 
     Returns:
         float: Precision Score.
     """
 
-    return precision_score(y_true, y_pred)
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+
+    tp = np.logical_and((y_true == pos_label), (y_pred == pos_label)).sum()
+    fp = np.logical_and((y_true != pos_label), (y_pred == pos_label)).sum()
+
+    return tp / (tp + fp)
 
 
-def recall(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+def recall(y_true: np.ndarray, y_pred: np.ndarray, pos_label: int = 1) -> float:
     """
     Compute the Recall Score.
 
@@ -106,15 +113,22 @@ def recall(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     Args:
         y_true (np.ndarray): True labels.
         y_pred (np.ndarray): Predicted labels.
+        pos_label (int): Label of positive class.
 
     Returns:
         float: Recall Score.
     """
 
-    return recall_score(y_true, y_pred)
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+
+    tp = np.logical_and((y_true == pos_label), (y_pred == pos_label)).sum()
+    fn = np.logical_and((y_true == pos_label), (y_pred != pos_label)).sum()
+
+    return tp / (tp + fn)
 
 
-def f1(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+def f1(y_true: np.ndarray, y_pred: np.ndarray, pos_label: int = 1) -> float:
     """
     Compute the F1 Score.
 
@@ -123,9 +137,31 @@ def f1(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     Args:
         y_true (np.ndarray): True labels.
         y_pred (np.ndarray): Predicted labels.
+        pos_label (int): Label of positive class.
 
     Returns:
         float: F1 Score.
     """
 
-    return f1_score(y_true, y_pred)
+    p = precision(y_true, y_pred, pos_label)
+    r = recall(y_true, y_pred, pos_label)
+
+    return 2 * p * r / (p + r)
+
+
+def accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """
+    Compute the accuracy of prediction.
+
+    Args:
+        y_true (np.ndarray): True labels.
+        y_pred (np.ndarray): Predicted labels.
+
+    Returns:
+        float: Accuracy.
+    """
+
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+
+    return (y_true == y_pred).mean()
