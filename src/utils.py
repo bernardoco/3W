@@ -10,7 +10,7 @@ import numpy as np
 import constants
 
 
-def read_files(base_path: str, classes: list, real_only=True) -> list:
+def read_files(base_path: str, classes: list, real_only: bool = True) -> list:
     """
     Read files from path and return list of filenames.
 
@@ -132,7 +132,7 @@ def f1(y_true: np.ndarray, y_pred: np.ndarray, pos_label: int = 1) -> float:
     """
     Compute the F1 Score.
 
-    Recall = 2 * Precision * Recall / (Precision + Recall)
+    F1 = 2 * Precision * Recall / (Precision + Recall)
 
     Args:
         y_true (np.ndarray): True labels.
