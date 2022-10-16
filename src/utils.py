@@ -10,7 +10,9 @@ import numpy as np
 import constants
 
 
-def read_files(base_path: str, classes: list, real_only: bool = True) -> list:
+def read_files(
+    base_path: str, classes: list, real_only: bool = True, test_size: float = 0
+) -> tuple[list, list]:
     """
     Read files from path and return list of filenames.
 
@@ -18,25 +20,32 @@ def read_files(base_path: str, classes: list, real_only: bool = True) -> list:
         basepath (str): Path of parent folder.
         classes (list): List of classes to read.
         real_only (bool): Only read real instances.
+        test_size (float): Split size for test files.
 
     Returns:
-        list: List of filenames.
+        list: List of train filenames.
+        list: List of test filenames.
     """
 
-    files = []
+    train_files = []
+    test_files = []
 
     for c in classes:
         directory = os.path.join(base_path, str(c))
+        files = os.listdir(directory)
 
-        for file in os.listdir(directory):
-            file_path = os.path.join(directory, file)
+        if real_only:
+            fnames = [file for file in files if "WELL" in file]
+            files = fnames
 
-            if real_only and "WELL" not in file_path:
-                continue
+        files = [os.path.join(base_path, str(c), file) for file in files]
 
-            files.append(file_path)
+        split = int(len(files) * test_size)
 
-    return files
+        train_files.extend(files[split:])
+        test_files.extend(files[:split])
+
+    return train_files, test_files
 
 
 def create_sequence(data: np.ndarray, steps: int = constants.STEPS) -> np.ndarray:
