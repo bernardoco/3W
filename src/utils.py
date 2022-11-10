@@ -6,6 +6,7 @@ Utility functions.
 import os
 
 import numpy as np
+from sklearn.linear_model import LinearRegression
 
 import constants
 
@@ -68,7 +69,7 @@ def create_sequence(data: np.ndarray, steps: int = constants.STEPS) -> np.ndarra
     return np.array(x)
 
 
-def get_features(window: np.ndarray) -> np.ndarray:
+def get_features(window: np.ndarray) -> list:
     """
     Calculate features from time window.
     Format: [Mean, Std, Var, Min, Max]
@@ -77,16 +78,20 @@ def get_features(window: np.ndarray) -> np.ndarray:
         window (np.ndarray): Time series.
 
     Returns:
-        np.ndarray: Features from time series.
+        list: Features from time series.
     """
 
     mean = window.mean(axis=0)
     std = window.std(axis=0)
-    var = window.var(axis=0)
-    min_value = window.min(axis=0)
-    max_value = window.max(axis=0)
+    # var = window.var(axis=0)
+    # min_value = window.min(axis=0)
+    # max_value = window.max(axis=0)
 
-    return np.array([mean, std, var, min_value, max_value])
+    x = np.arange(constants.STEPS).reshape(-1, 1)
+    lr = LinearRegression().fit(x, window)
+
+    # return [mean, std, var, min_value, max_value]
+    return [mean, std, lr.coef_.flatten()]
 
 
 def precision(y_true: np.ndarray, y_pred: np.ndarray, pos_label: int = 1) -> float:
